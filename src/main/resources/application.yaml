@@ -1,3 +1,8 @@
 spring:
   application:
     name: submonitor
+
+submonitor:
+  jwt:
+    secret: B34kWttjiyK3P2f38lz5524wZHUsx93ocbTFOKArULA=
+    expirationMs: 604800000
