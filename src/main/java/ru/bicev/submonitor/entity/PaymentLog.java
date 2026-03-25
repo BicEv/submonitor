@@ -43,6 +43,10 @@ public class PaymentLog {
     @JoinColumn(name = "subscription_id", nullable = false)
     private Subscription subscription;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "subscriber_id", nullable = false)
+    private Subscriber subscriber;
+
     @Column(nullable = false)
     private BigDecimal amount;
 
