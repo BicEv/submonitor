@@ -18,6 +18,9 @@ import ru.bicev.submonitor.repository.SubscriberRepository;
 import ru.bicev.submonitor.security.JwtUtil;
 import ru.bicev.submonitor.security.UserDetailsImpl;
 
+/**
+ * Сервис для регистрации или логина пользователей
+ */
 @Service
 @RequiredArgsConstructor
 public class AuthService {
@@ -27,6 +30,14 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
 
+    /**
+     * Метод создающий нового пользователя в системе
+     * 
+     * @param request запрос с данными, для создания нового пользователя
+     * @return ответ, содержащий jwt токен, идентификатор пользователя и его имя
+     * @throws DuplicateSubscriberException.class если пользователь с таким
+     *                                            именем/email уже существует
+     */
     @Transactional
     public JwtResponse registerSubscriber(SingupRequest request) {
         if (subscriberRepository.existsByUsername(request.username())
@@ -54,6 +65,12 @@ public class AuthService {
 
     }
 
+    /**
+     * Метод для логина пользователя
+     * 
+     * @param request запрос содержащий имя и пароль пользователя
+     * @return ответ, содержащий jwt токен, идентификатор и имя пользователя
+     */
     public JwtResponse login(LoginRequest request) {
 
         Authentication auth = authenticationManager
