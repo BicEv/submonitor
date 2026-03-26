@@ -43,6 +43,7 @@ public class ServiceService {
                 .build();
 
         var savedService = serviceRepository.save(service);
+        log.debug("Service created: {}, id:{}", savedService.getName(), savedService.getId());
         return toDto(savedService);
     }
 
@@ -57,7 +58,11 @@ public class ServiceService {
     @Transactional(readOnly = true)
     public ServiceDto getServiceById(Long serviceId) {
         var service = serviceRepository.findByIdAndOwnerIdEqualsOrNull(serviceId, getSubId())
-                .orElseThrow(() -> new NotFoundException("Service not found with id: " + serviceId));
+                .orElseThrow(() -> {
+                    log.warn("Service not found, id: {}", serviceId);
+                    throw new NotFoundException("Service not found with id: " + serviceId);
+                });
+        log.debug("Service found, id: {}", service.getId());
         return toDto(service);
     }
 
@@ -68,7 +73,9 @@ public class ServiceService {
      */
     @Transactional(readOnly = true)
     public List<ServiceDto> getAvailableServices() {
-        var services = serviceRepository.findAllAvailable(getSubId());
+        Long subId = getSubId();
+        var services = serviceRepository.findAllAvailable(subId);
+        log.debug("Services found for subscriber: {}", subId);
         return services.stream().map(this::toDto).collect(Collectors.toList());
     }
 
@@ -83,8 +90,12 @@ public class ServiceService {
      */
     @Transactional
     public ServiceDto updateService(ServiceUpdateRequest request) {
-        var service = serviceRepository.findByIdAndOwnerId(request.id(), getSubId())
-                .orElseThrow(() -> new NotFoundException("Service was not found or principal is not the owner"));
+        Long subId = getSubId();
+        var service = serviceRepository.findByIdAndOwnerId(request.id(), subId)
+                .orElseThrow(() -> {
+                    log.warn("Service: {} was not found or subscriber: {} is not the owner", request.id(), subId);
+                    throw new NotFoundException("Service was not found or principal is not the owner");
+                });
 
         if (request.name() != null && request.name().length() >= 2) {
             service.setName(request.name());
@@ -92,6 +103,7 @@ public class ServiceService {
         if (request.serviceCategory() != null) {
             service.setServiceCategory(request.serviceCategory());
         }
+        log.debug("Service: {} was updated", service.getId());
         return toDto(service);
     }
 
@@ -105,8 +117,11 @@ public class ServiceService {
     @Transactional
     public void deleteService(Long serviceId) {
         var service = serviceRepository.findByIdAndOwnerId(serviceId, getSubId())
-                .orElseThrow(() -> new NotFoundException("Service was not found or principal is not the owner"));
-
+                .orElseThrow(() -> {
+                    log.warn("Service: {} was not found or doesn't belongs to a subscriber", serviceId);
+                    throw new NotFoundException("Service was not found or principal is not the owner");
+                });
+        log.debug("Service: {} was deleted", service.getId());
         serviceRepository.delete(service);
     }
 
