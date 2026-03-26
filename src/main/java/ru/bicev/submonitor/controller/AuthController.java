@@ -1,6 +1,5 @@
 package ru.bicev.submonitor.controller;
 
-import java.net.URI;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
