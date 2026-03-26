@@ -15,6 +15,6 @@ public interface PaymentLogRepository extends JpaRepository<PaymentLog, Long> {
     Page<PaymentLog> findAllBySubscriberId(Long subscriberId, Pageable pageable);
 
     @EntityGraph(attributePaths = { "subscription", "subscription.service" })
-    Optional<PaymentLog> findByIdAndSubscriberID(Long id, Long subscriberId);
+    Optional<PaymentLog> findByIdAndSubscriberId(Long id, Long subscriberId);
 
 }

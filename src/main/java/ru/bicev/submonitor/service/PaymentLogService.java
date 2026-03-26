@@ -71,7 +71,7 @@ public class PaymentLogService {
     @Transactional(readOnly = true)
     public PaymentLogDto getPaymentLogById(Long paymentLogId) {
         Long subId = getSubId();
-        var payment = paymentLogRepository.findByIdAndSubscriberID(paymentLogId, subId).orElseThrow(() -> {
+        var payment = paymentLogRepository.findByIdAndSubscriberId(paymentLogId, subId).orElseThrow(() -> {
             log.warn("PaymentLog with id: {} was not found or it doesn't belongs to user: {}",
                     paymentLogId, subId);
             throw new NotFoundException("PaymentLog not found or doesn't belong to current user");
@@ -104,7 +104,7 @@ public class PaymentLogService {
     @Transactional
     public void deletePaymentLog(Long paymentLogId) {
         Long subId = getSubId();
-        var payment = paymentLogRepository.findByIdAndSubscriberID(paymentLogId, subId).orElseThrow(() -> {
+        var payment = paymentLogRepository.findByIdAndSubscriberId(paymentLogId, subId).orElseThrow(() -> {
             log.warn("PaymentLog with id: {} was not found or it doesn't belongs to user: {}",
                     paymentLogId, subId);
             throw new NotFoundException("PaymentLog not found or doesn't belong to current user");
