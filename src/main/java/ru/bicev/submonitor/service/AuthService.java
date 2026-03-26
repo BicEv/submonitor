@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import ru.bicev.submonitor.dto.auth.JwtResponse;
 import ru.bicev.submonitor.dto.auth.LoginRequest;
 import ru.bicev.submonitor.dto.auth.SingupRequest;
@@ -23,6 +24,7 @@ import ru.bicev.submonitor.security.UserDetailsImpl;
  */
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AuthService {
 
     private final SubscriberRepository subscriberRepository;
@@ -42,6 +44,7 @@ public class AuthService {
     public JwtResponse registerSubscriber(SingupRequest request) {
         if (subscriberRepository.existsByUsername(request.username())
                 || subscriberRepository.existsByEmail(request.email())) {
+            log.warn("Duplicate subscriber exception: username: {}; email: {}", request.username(), request.email());
             throw new DuplicateSubscriberException("Username or email already in use");
         }
 
@@ -60,6 +63,7 @@ public class AuthService {
         String jwt = jwtUtil.generateToken(auth);
 
         UserDetailsImpl userDetails = (UserDetailsImpl) auth.getPrincipal();
+        log.debug("Subscriber created with id: {}", createdSub.getId());
 
         return new JwtResponse(jwt, userDetails.getId(), userDetails.getUsername());
 
@@ -80,7 +84,7 @@ public class AuthService {
         String jwt = jwtUtil.generateToken(auth);
 
         UserDetailsImpl userDetails = (UserDetailsImpl) auth.getPrincipal();
-
+        log.debug("Subscriber logged in: {}", request.username());
         return new JwtResponse(jwt, userDetails.getId(), userDetails.getUsername());
     }
 
