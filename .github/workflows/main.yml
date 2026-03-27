@@ -42,12 +42,10 @@ jobs:
           sleep 2
           done
 
-          mvn liquibase:update \
-          -Dliquibase.url=jdbc:postgresql://localhost:5432/sub_monitor \
-          -Dliquibase.username=user \
-          -Dliquibase.password=password
-      
           mvn clean verify \
+          -Dspring.datasource.url="jdbc:postgresql://localhost:5432/sub_monitor" \
+          -Dspring.datasource.username=user \
+          -Dspring.datasource.password=password \
           -Ddb.url="jdbc:postgresql://localhost:5432/sub_monitor" \
           -Ddb.username=user \
           -Ddb.password=password
