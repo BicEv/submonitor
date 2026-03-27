@@ -1,8 +1,18 @@
 spring:
   application:
     name: submonitor
+  jpa:
+    show-sql: true
+    open-in-view: false
+    hibernate:
+      ddl-auto: update
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/sub_monitor
+    username: postgres
+    password: postgres
 
 submonitor:
   jwt:
-    secret: B34kWttjiyK3P2f38lz5524wZHUsx93ocbTFOKArULA=
+    secret: 0c6005768c5c478c5303da3ed30d13d4a0819935e363fa3a33ef490d378b7be983c167bb605868b169a63e0264141b450ab13282de0eceb9bf8367a7a101fdf8
     expirationMs: 604800000
