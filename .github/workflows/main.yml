@@ -36,7 +36,9 @@ jobs:
           cache: maven
 
       - name: Build with Maven
-        run: mvn clean verify -Ddb.url=jdbc:postgresql://localhost:5432/sub_monitor -Ddb.username=user -Ddb.password=password
+        run: |
+          mvn clean
+          mvn verify -Ddb.url=jdbc:postgresql://localhost:5432/sub_monitor -Ddb.username=user -Ddb.password=password
         env:
           SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/sub_monitor
           SPRING_DATASOURCE_USERNAME: user
