@@ -16,6 +16,6 @@ public interface SubscriptionRepository extends JpaRepository<Subscription, Long
     Optional<Subscription> findByIdAndSubscriberId(Long id, Long subscriberId);
 
     @EntityGraph(attributePaths = "subscriber")
-    List<Subscription> findAllByIsActiveTrueAndIsDeletedFalseAndNextPaymentDateLessThanEqual(LocalDate date);
+    List<Subscription> findAllByIsActiveTrueAndIsDeletedFalseAndNextPaymentLessThanEqual(LocalDate date);
 
 }
