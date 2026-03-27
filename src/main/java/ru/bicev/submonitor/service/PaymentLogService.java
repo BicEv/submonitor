@@ -1,5 +1,7 @@
 package ru.bicev.submonitor.service;
 
+import java.time.LocalDate;
+
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -11,6 +13,7 @@ import ru.bicev.submonitor.dto.payment.PaymentCreateLogRequest;
 import ru.bicev.submonitor.dto.payment.PaymentLogDto;
 import ru.bicev.submonitor.entity.PaymentLog;
 import ru.bicev.submonitor.entity.Subscriber;
+import ru.bicev.submonitor.entity.Subscription;
 import ru.bicev.submonitor.entity.enums.PaymentStatus;
 import ru.bicev.submonitor.exception.NotFoundException;
 import ru.bicev.submonitor.repository.PaymentLogRepository;
@@ -57,6 +60,26 @@ public class PaymentLogService {
         log.debug("Payment log created: {}", savedPaymentLog.getId());
         return toDto(savedPaymentLog);
 
+    }
+
+    /**
+     * Метод для создания платежного лога для переданной подписки и ее владельца
+     * 
+     * @param subscription подписка для которой создается платежный лог
+     */
+    @Transactional
+    public void createInternalPaymentLog(Subscription subscription) {
+        var subscriber = subscription.getSubscriber();
+        PaymentLog paymentLog = PaymentLog.builder()
+                .subscriber(subscriber)
+                .subscription(subscription)
+                .paymentDate(LocalDate.now())
+                .amount(subscription.getPrice())
+                .status(PaymentStatus.SUCCESS)
+                .build();
+        paymentLogRepository.save(paymentLog);
+        log.info("Created paymentLog: {} for subscriber: {} and subscription: {}", paymentLog.getId(),
+                subscriber.getId(), subscription.getId());
     }
 
     /**
