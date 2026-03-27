@@ -35,21 +35,32 @@ jobs:
           distribution: "temurin"
           cache: maven
 
-      - name: Build with Maven
+      - name: Wait for PostgreSQL
         run: |
           until PGPASSWORD=password psql -h localhost -U user -d sub_monitor -c 'SELECT 1'; do
           echo "Waiting for PostgreSQL..."
           sleep 2
           done
+          echo "PostgreSQL ready!"
 
-          mvn clean verify \
+      - name: Run Liquibase migrations
+        run: |
+          mvn liquibase:update -X \
           -Dspring.datasource.url="jdbc:postgresql://localhost:5432/sub_monitor" \
           -Dspring.datasource.username=user \
-          -Dspring.datasource.password=password \
+          -Dspring.datasource.password=password
+
+      - name: Generate JOOQ sources
+        run: |
+          mvn generate-sources -X \
           -Ddb.url="jdbc:postgresql://localhost:5432/sub_monitor" \
           -Ddb.username=user \
           -Ddb.password=password
-        env:
-          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/sub_monitor
-          SPRING_DATASOURCE_USERNAME: user
-          SPRING_DATASOURCE_PASSWORD: password
+          ls -la target/generated-sources/jooq/ru/bicev/submonitor/jooq/ || echo "NO JOOQ FILES!"
+
+      - name: Compile
+        run: |
+          mvn compile \
+          -Ddb.url="jdbc:postgresql://localhost:5432/sub_monitor" \
+          -Ddb.username=user \
+          -Ddb.password=password
