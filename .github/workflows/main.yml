@@ -49,7 +49,9 @@ jobs:
           -Dliquibase.url="jdbc:postgresql://localhost:5432/sub_monitor" \
           -Dliquibase.username=user \
           -Dliquibase.password=password \
-          -Dliquibase.changeLogFile="src/main/resources/db/changelog/db.changelog-master.yaml
+          -Dliquibase.changeLogFile="src/main/resources/db/changelog/db.changelog-master.yaml"
+          echo "Liquibase done. Tables:"
+          PGPASSWORD=password psql -h localhost -U user -d sub_monitor -c "\dt"
 
       - name: Generate JOOQ sources
         run: |
