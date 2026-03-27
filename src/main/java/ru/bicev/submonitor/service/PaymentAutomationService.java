@@ -30,7 +30,7 @@ public class PaymentAutomationService {
         log.info("Starting automated processing...");
         LocalDate current = LocalDate.now();
         List<Subscription> toProcess = subscriptionRepository
-                .findAllByIsActiveTrueAndIsDeletedFalseAndNextPaymentDateLessThanEqual(current);
+                .findAllByIsActiveTrueAndIsDeletedFalseAndNextPaymentLessThanEqual(current);
 
         for (Subscription s : toProcess) {
 
