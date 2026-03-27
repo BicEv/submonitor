@@ -195,7 +195,6 @@
 				<executions>
 					<execution>
 						<id>jooq-codegen</id>
-						<phase>generate-sources</phase>
 						<goals>
 							<goal>generate</goal>
 						</goals>
