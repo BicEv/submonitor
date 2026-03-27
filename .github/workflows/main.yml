@@ -1,8 +1,8 @@
 name: Java CI with Maven
 
-on: 
+on:
   push:
-    branches: ["main","develop"]
+    branches: ["main", "develop"]
   pull_request:
     branches: ["main"]
 
@@ -31,18 +31,27 @@ jobs:
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
-          java-version: '21'
-          distribution: 'temurin'
+          java-version: "21"
+          distribution: "temurin"
           cache: maven
 
       - name: Build with Maven
         run: |
-          mvn jooq-codegen:generate -Ddb.url=jdbc:postgresql://localhost:5432/sub_monitor -Ddb.username=user -Ddb.password=password
-          mvn install -Ddb.url=jdbc:postgresql://localhost:5432/sub_monitor -Ddb.username=user -Ddb.password=password
+          until PGPASSWORD=password psql -h localhost -U user -d sub_monitor -c 'SELECT 1'; do
+          echo "Waiting for PostgreSQL..."
+          sleep 2
+          done
+
+          mvn liquibase:update \
+          -Dliquibase.url=jdbc:postgresql://localhost:5432/sub_monitor \
+          -Dliquibase.username=user \
+          -Dliquibase.password=password
+      
+          mvn clean verify \
+          -Ddb.url="jdbc:postgresql://localhost:5432/sub_monitor" \
+          -Ddb.username=user \
+          -Ddb.password=password
         env:
           SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/sub_monitor
           SPRING_DATASOURCE_USERNAME: user
           SPRING_DATASOURCE_PASSWORD: password
-          
-      
-        
