@@ -164,12 +164,13 @@
 						</goals>
 						<configuration>
 							<sources>
-								<source>${project.build.directory}/generated-sources/jooq</source>
+								<source>target/generated-sources/jooq</source>
 							</sources>
 						</configuration>
 					</execution>
 				</executions>
 			</plugin>
+
 
 
 			<plugin>
