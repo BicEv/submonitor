@@ -40,6 +40,7 @@ public class PaymentAutomationService {
             }
 
         }
+        log.info("Automated processing is over!");
     }
 
     private void updateNextPaymentDate(Subscription subscription) {
