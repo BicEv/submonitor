@@ -176,6 +176,26 @@
 			<plugin>
 				<groupId>org.jooq</groupId>
 				<artifactId>jooq-codegen-maven</artifactId>
+				<configuration>
+					<jdbc>
+						<driver>org.postgresql.Driver</driver>
+						<url>${db.url}</url>
+						<user>${db.username}</user>
+						<password>${db.password}</password>
+					</jdbc>
+					<generator>
+						<database>
+							<name>org.jooq.meta.postgres.PostgresDatabase</name>
+							<includes>.*</includes>
+							<excludes></excludes>
+							<inputSchema>public</inputSchema>
+						</database>
+						<target>
+							<packageName>ru.bicev.submonitor.jooq</packageName>
+							<directory>target/generated-sources/jooq</directory>
+						</target>
+					</generator>
+				</configuration>
 				<executions>
 					<execution>
 						<id>jooq-codegen</id>
@@ -183,26 +203,6 @@
 						<goals>
 							<goal>generate</goal>
 						</goals>
-						<configuration>
-							<jdbc>
-								<driver>org.postgresql.Driver</driver>
-								<url>${db.url}</url>
-								<user>${db.username}</user>
-								<password>${db.password}</password>
-							</jdbc>
-							<generator>
-								<database>
-									<name>org.jooq.meta.postgres.PostgresDatabase</name>
-									<includes>.*</includes>
-									<excludes></excludes>
-									<inputSchema>public</inputSchema>
-								</database>
-								<target>
-									<packageName>ru.bicev.submonitor.jooq</packageName>
-									<directory>target/generated-sources/jooq</directory>
-								</target>
-							</generator>
-						</configuration>
 					</execution>
 				</executions>
 			</plugin>
