@@ -45,10 +45,11 @@ jobs:
 
       - name: Run Liquibase migrations
         run: |
-          mvn liquibase:update -X \
-          -Dspring.datasource.url="jdbc:postgresql://localhost:5432/sub_monitor" \
-          -Dspring.datasource.username=user \
-          -Dspring.datasource.password=password
+          mvn liquibase:update \
+          -Dliquibase.url="jdbc:postgresql://localhost:5432/sub_monitor" \
+          -Dliquibase.username=user \
+          -Dliquibase.password=password \
+          -Dliquibase.changeLogFile="db/changelog/db.changelog-master.yaml"
 
       - name: Generate JOOQ sources
         run: |
