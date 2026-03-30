@@ -11,6 +11,7 @@ import org.springframework.stereotype.Repository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import ru.bicev.submonitor.dto.analytics.CategoryStat;
+import ru.bicev.submonitor.dto.analytics.CurrencyAmount;
 import ru.bicev.submonitor.dto.analytics.ServiceStat;
 
 import static ru.bicev.submonitor.jooq.Tables.*;
@@ -28,72 +29,89 @@ public class JooqAnalyticsRepository {
 
     /**
      * Метод возвращающий список трат, сгруппированных по категориям
-     * @param userId идентификатор пользователя
+     * 
+     * @param userId        идентификатор пользователя
      * @param dateCondition условие для фильтрации по дате
-     * @return список CategoryStat.class содержащий имя категории и сумму затрат на нее
+     * @return список CategoryStat.class содержащий имя категории, валюту и сумму
+     *         затрат на нее
      */
     public List<CategoryStat> getExpensesByCategory(Long userId, Condition dateCondition) {
-        log.debug("getExpensesByCategory for: {} with: {}",userId, dateCondition.getName());
+        log.debug("getExpensesByCategory for: {} with: {}", userId, dateCondition.getName());
         return dsl.select(
                 SERVICES.SERVICE_CATEGORY.as("category"),
+                SUBSCRIPTIONS.CURRENCY.as("currency"),
                 DSL.sum(PAYMENTS.AMOUNT).as("total"))
                 .from(PAYMENTS)
                 .join(SUBSCRIPTIONS).on(PAYMENTS.SUBSCRIPTION_ID.eq(SUBSCRIPTIONS.ID))
                 .join(SERVICES).on(SUBSCRIPTIONS.SERVICE_ID.eq(SERVICES.ID))
                 .where(PAYMENTS.SUBSCRIBER_ID.eq(userId))
                 .and(dateCondition)
-                .groupBy(SERVICES.SERVICE_CATEGORY)
+                .groupBy(SERVICES.SERVICE_CATEGORY, SUBSCRIPTIONS.CURRENCY)
                 .fetchInto(CategoryStat.class);
     }
 
     /**
      * Метод возвращающий список трат, сгруппированных по сервисам
-     * @param userId идентификатор пользователя
+     * 
+     * @param userId        идентификатор пользователя
      * @param dateCondition условие для фильтрации по дате
-     * @return список ServiceStat.class содержащий имя сервиса и сумму затрат на него
+     * @return список ServiceStat.class содержащий имя сервиса, валюту и сумму
+     *         затрат на
+     *         него
      */
     public List<ServiceStat> getExpensesByService(Long userId, Condition dateCondition) {
-        log.debug("getExpensesByService for: {} with: {}",userId, dateCondition.getName());
+        log.debug("getExpensesByService for: {} with: {}", userId, dateCondition.getName());
         return dsl.select(
                 SERVICES.NAME.as("service"),
-                DSL.sum(PAYMENTS.AMOUNT).as("total"))
-                .from((PAYMENTS))
-                .join(SUBSCRIPTIONS).on((PAYMENTS.SUBSCRIPTION_ID).eq(SUBSCRIPTIONS.ID))
+                SUBSCRIPTIONS.CURRENCY.as("currency"),
+                DSL.coalesce(DSL.sum(PAYMENTS.AMOUNT), ZERO).as("total"))
+                .from(PAYMENTS)
+                .join(SUBSCRIPTIONS).on(PAYMENTS.SUBSCRIPTION_ID.eq(SUBSCRIPTIONS.ID))
                 .join(SERVICES).on(SUBSCRIPTIONS.SERVICE_ID.eq(SERVICES.ID))
                 .where(PAYMENTS.SUBSCRIBER_ID.eq(userId))
                 .and(dateCondition)
-                .groupBy(SERVICES.NAME)
+                .groupBy(SERVICES.NAME, SUBSCRIPTIONS.CURRENCY)
                 .fetchInto(ServiceStat.class);
     }
 
     /**
-     * Метод возвращающий сумму затрат за указанный период
-     * @param userId идентификатор пользователя
+     * Метод возвращающий список сумм затрат за указанное время, сгруппированный по
+     * валютам
+     * 
+     * @param userId        идентификатор пользователя
      * @param dateCondition условие для фильтрации по дате
-     * @return сумма затрат за указанный период
+     * @return список пар валюта: сумма затрат
      */
-    public BigDecimal getTotal(Long userId, Condition dateCondition) {
-        log.debug("getTotal for: {} with: {}",userId, dateCondition.getName());
-        return dsl.select(DSL.coalesce(DSL.sum(PAYMENTS.AMOUNT), ZERO))
+    public List<CurrencyAmount> getTotal(Long userId, Condition dateCondition) {
+        log.debug("getTotal for: {} with: {}", userId, dateCondition.getName());
+        return dsl.select(
+                SUBSCRIPTIONS.CURRENCY.as("currency"),
+                DSL.coalesce(DSL.sum(PAYMENTS.AMOUNT), ZERO).as("total"))
                 .from(PAYMENTS)
+                .join(SUBSCRIPTIONS).on(PAYMENTS.SUBSCRIPTION_ID.eq(SUBSCRIPTIONS.ID))
                 .where(PAYMENTS.SUBSCRIBER_ID.eq(userId))
                 .and(dateCondition)
-                .fetchOneInto(BigDecimal.class);
+                .groupBy(SUBSCRIPTIONS.CURRENCY)
+                .fetchInto(CurrencyAmount.class);
     }
 
     /**
      * Метод возвращающий прогноз затрат на основе активных и не удаленных подписок
+     * 
      * @param userId идентификатор пользователя
-     * @return сумму пронозируемых затрат
+     * @return список пар валюта: сумма прогнозируемых затрат
      */
-    public BigDecimal getForecast(Long userId) {
-        log.debug("getForecast for: {}",userId);
-        return dsl.select(DSL.coalesce(DSL.sum(SUBSCRIPTIONS.PRICE), ZERO))
+    public List<CurrencyAmount> getForecast(Long userId) {
+        log.debug("getForecast for: {}", userId);
+        return dsl.select(
+                SUBSCRIPTIONS.CURRENCY.as("currency"),
+                DSL.coalesce(DSL.sum(SUBSCRIPTIONS.PRICE), ZERO).as("total"))
                 .from(SUBSCRIPTIONS)
                 .where(SUBSCRIPTIONS.SUBSCRIBER_ID.eq(userId))
                 .and(SUBSCRIPTIONS.IS_ACTIVE.isTrue())
                 .and(SUBSCRIPTIONS.IS_DELETED.isFalse())
-                .fetchOneInto(BigDecimal.class);
+                .groupBy(SUBSCRIPTIONS.CURRENCY)
+                .fetchInto(CurrencyAmount.class);
     }
 
 }
