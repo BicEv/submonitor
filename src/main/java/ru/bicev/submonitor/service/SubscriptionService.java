@@ -25,7 +25,7 @@ import ru.bicev.submonitor.repository.SubscriptionRepository;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class SuscriptionService {
+public class SubscriptionService {
 
     private final SecurityService securityService;
     private final ServiceRepository serviceRepository;
