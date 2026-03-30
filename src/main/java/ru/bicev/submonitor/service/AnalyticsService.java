@@ -5,14 +5,20 @@ import static ru.bicev.submonitor.jooq.Tables.PAYMENTS;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.jooq.impl.DSL;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.var;
 import lombok.extern.slf4j.Slf4j;
 import ru.bicev.submonitor.dto.analytics.CategoryStat;
+import ru.bicev.submonitor.dto.analytics.CategoryStatResponse;
+import ru.bicev.submonitor.dto.analytics.CurrencyAmount;
 import ru.bicev.submonitor.dto.analytics.ServiceStat;
+import ru.bicev.submonitor.dto.analytics.ServiceStatResponse;
+import ru.bicev.submonitor.dto.analytics.TotalResponse;
 import ru.bicev.submonitor.repository.JooqAnalyticsRepository;
 
 /**
@@ -25,16 +31,19 @@ public class AnalyticsService {
 
     private final SecurityService securityService;
     private final JooqAnalyticsRepository jooqAnalyticsRepository;
+    private final CurrencyService currencyService;
 
     /**
      * Метод возвращающий список затрат по категориям за все время
      * 
      * @return список затрат по категорям за все время
      */
-    public List<CategoryStat> getCategoryStats() {
+    public List<CategoryStatResponse> getCategoryStats() {
         Long userId = getUserId();
         log.debug("getCategoryStats() for user: {}", userId);
-        return jooqAnalyticsRepository.getExpensesByCategory(userId, DSL.noCondition());
+        var rawStats = jooqAnalyticsRepository.getExpensesByCategory(userId, DSL.noCondition());
+        return mapToAggregated(rawStats);
+
     }
 
     /**
@@ -42,10 +51,12 @@ public class AnalyticsService {
      * 
      * @return список затрат по категорям за месяц
      */
-    public List<CategoryStat> getCategoryStatsForMonth() {
+    public List<CategoryStatResponse> getCategoryStatsForMonth() {
         Long userId = getUserId();
-        log.debug("getCategoryStatsForMonth() for user: {} and month", userId, getStartOfMonth().getMonth().toString());
-        return jooqAnalyticsRepository.getExpensesByCategory(userId, PAYMENTS.PAYMENT_DATE.ge(getStartOfMonth()));
+        log.debug("getCategoryStatsForMonth() for user: {} and month: {}", userId, getStartOfMonth().getMonth().toString());
+        var rawStats = jooqAnalyticsRepository.getExpensesByCategory(userId,
+                PAYMENTS.PAYMENT_DATE.ge(getStartOfMonth()));
+        return mapToAggregated(rawStats);
     }
 
     /**
@@ -53,10 +64,12 @@ public class AnalyticsService {
      * 
      * @return список затрат по категорям за год
      */
-    public List<CategoryStat> getCategoryStatsForYear() {
+    public List<CategoryStatResponse> getCategoryStatsForYear() {
         Long userId = getUserId();
-        log.debug("getCategoryStatsForYear() for user: {} and year", userId, getStartOfYear().getYear());
-        return jooqAnalyticsRepository.getExpensesByCategory(userId, PAYMENTS.PAYMENT_DATE.ge(getStartOfYear()));
+        log.debug("getCategoryStatsForYear() for user: {} and year: {}", userId, getStartOfYear().getYear());
+        var rawStats = jooqAnalyticsRepository.getExpensesByCategory(userId,
+                PAYMENTS.PAYMENT_DATE.ge(getStartOfYear()));
+        return mapToAggregated(rawStats);
     }
 
     /**
@@ -64,10 +77,11 @@ public class AnalyticsService {
      * 
      * @return список затрат по сервисам за все время
      */
-    public List<ServiceStat> getServiceStats() {
+    public List<ServiceStatResponse> getServiceStats() {
         Long userId = getUserId();
         log.debug("getServiceStats() for user: {}", userId);
-        return jooqAnalyticsRepository.getExpensesByService(userId, DSL.noCondition());
+        var rawStats = jooqAnalyticsRepository.getExpensesByService(userId, DSL.noCondition());
+        return mapToConverted(rawStats);
     }
 
     /**
@@ -75,10 +89,12 @@ public class AnalyticsService {
      * 
      * @return список затрат по сервисам за все месяц
      */
-    public List<ServiceStat> getServiceStatsForMonth() {
+    public List<ServiceStatResponse> getServiceStatsForMonth() {
         Long userId = getUserId();
-        log.debug("getServiceStatsForMonth() for user: {} and month", userId, getStartOfMonth().getMonth().toString());
-        return jooqAnalyticsRepository.getExpensesByService(userId, PAYMENTS.PAYMENT_DATE.ge(getStartOfMonth()));
+        log.debug("getServiceStatsForMonth() for user: {} and month: {}", userId, getStartOfMonth().getMonth().toString());
+        var rawStats = jooqAnalyticsRepository.getExpensesByService(userId,
+                PAYMENTS.PAYMENT_DATE.ge(getStartOfMonth()));
+        return mapToConverted(rawStats);
     }
 
     /**
@@ -86,10 +102,11 @@ public class AnalyticsService {
      * 
      * @return список затрат по сервисам за все год
      */
-    public List<ServiceStat> getServiceStatsForYear() {
+    public List<ServiceStatResponse> getServiceStatsForYear() {
         Long userId = getUserId();
-        log.debug("getServiceStatsForYear() for user: {} and year", userId, getStartOfYear().getYear());
-        return jooqAnalyticsRepository.getExpensesByService(userId, PAYMENTS.PAYMENT_DATE.ge(getStartOfYear()));
+        log.debug("getServiceStatsForYear() for user: {} and year: {}", userId, getStartOfYear().getYear());
+        var rawStats = jooqAnalyticsRepository.getExpensesByService(userId, PAYMENTS.PAYMENT_DATE.ge(getStartOfYear()));
+        return mapToConverted(rawStats);
     }
 
     /**
@@ -97,10 +114,11 @@ public class AnalyticsService {
      * 
      * @return сумма всех затрат за месяц
      */
-    public BigDecimal getTotalForMonth() {
+    public TotalResponse getTotalForMonth() {
         Long userId = getUserId();
         log.debug("getTotalForMonth() for user: {} and month: {}", userId, getStartOfMonth().getMonth().toString());
-        return jooqAnalyticsRepository.getTotal(userId, PAYMENTS.PAYMENT_DATE.ge(getStartOfMonth()));
+        var amounts = jooqAnalyticsRepository.getTotal(userId, PAYMENTS.PAYMENT_DATE.ge(getStartOfMonth()));
+        return new TotalResponse(calculateTotalInBase(amounts));
     }
 
     /**
@@ -108,10 +126,11 @@ public class AnalyticsService {
      * 
      * @return сумма затрат за год
      */
-    public BigDecimal getTotalForYear() {
+    public TotalResponse getTotalForYear() {
         Long userId = getUserId();
         log.debug("getTotalForYear() for user: {} and year: {}", userId, getStartOfYear().getYear());
-        return jooqAnalyticsRepository.getTotal(userId, PAYMENTS.PAYMENT_DATE.ge(getStartOfYear()));
+        var amounts = jooqAnalyticsRepository.getTotal(userId, PAYMENTS.PAYMENT_DATE.ge(getStartOfYear()));
+        return new TotalResponse(calculateTotalInBase(amounts));
     }
 
     /**
@@ -119,10 +138,12 @@ public class AnalyticsService {
      * 
      * @return сумма всех запланированных активных платежей
      */
-    public BigDecimal getUpcoming() {
+    public TotalResponse getForecast() {
         Long userId = getUserId();
-        log.debug("getUpcoming() for user: {}", userId);
-        return jooqAnalyticsRepository.getForecast(userId);
+        log.debug("getForecast() for user: {}", userId);
+        var amounts = jooqAnalyticsRepository.getForecast(userId);
+        return new TotalResponse(calculateTotalInBase(amounts));
+
     }
 
     /**
@@ -150,6 +171,54 @@ public class AnalyticsService {
      */
     private LocalDate getStartOfYear() {
         return LocalDate.now().withMonth(1).withDayOfMonth(1);
+    }
+
+    /**
+     * Служебный метод для конвертации валют полученных из базы данных записей в
+     * базовую валюту приложения
+     * 
+     * @param rawStats список статистических данных по категориям
+     * @return список затрат по категориям, конвертированных к базовой валюте
+     *         приложения
+     */
+    private List<CategoryStatResponse> mapToAggregated(List<CategoryStat> rawStats) {
+        var mapped = rawStats.stream()
+                .collect(Collectors.groupingBy(
+                        CategoryStat::category,
+                        (Collectors.mapping(
+                                stat -> currencyService.convertToBase(stat.total(), stat.currency()),
+                                Collectors.reducing(BigDecimal.ZERO, BigDecimal::add)))));
+
+        return mapped.entrySet().stream()
+                .map(entry -> new CategoryStatResponse(entry.getKey(), entry.getValue()))
+                .toList();
+    }
+
+    /**
+     * Служебный метод для конвертации валют полученных из базы записей в базовую
+     * валюту приложения
+     * 
+     * @param rawStats список статистических данных по сервисам
+     * @return список затрат по сервисам, конвертированных к базовой валюте
+     */
+    private List<ServiceStatResponse> mapToConverted(List<ServiceStat> rawStats) {
+        return rawStats.stream()
+                .map(stat -> new ServiceStatResponse(stat.service(),
+                        currencyService.convertToBase(stat.total(), stat.currency())))
+                .toList();
+    }
+
+    /**
+     * Служебный метод для конвертации валют полученных из базы записей в базовую
+     * валюту приложения
+     * 
+     * @param amounts список статистических данных по затратам
+     * @return сумма затрат, конвертированная к базовой валюте
+     */
+    private BigDecimal calculateTotalInBase(List<CurrencyAmount> amounts) {
+        return amounts.stream()
+                .map(ca -> currencyService.convertToBase(ca.total(), ca.currency()))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
 }
