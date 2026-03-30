@@ -109,12 +109,12 @@ public class SuscriptionService {
      *                                 пользователю
      */
     @Transactional
-    public SubscriptionDto updateSubscription(SubUpdateRequest request) {
+    public SubscriptionDto updateSubscription(Long subscriptionId, SubUpdateRequest request) {
         Long subId = getSubId();
-        var subscription = subscriptionRepository.findByIdAndSubscriberId(request.subscriptionId(), subId)
+        var subscription = subscriptionRepository.findByIdAndSubscriberId(subscriptionId, subId)
                 .orElseThrow(() -> {
                     log.warn("Subscription: {} was not found or subscriber: {} is not the owner",
-                            request.subscriptionId(), subId);
+                            subscriptionId, subId);
                     throw new NotFoundException("Subscription was not found or doesn't belong to a subscriber");
                 });
         if (request.price() != null && request.price().compareTo(BigDecimal.ZERO) > 0) {
