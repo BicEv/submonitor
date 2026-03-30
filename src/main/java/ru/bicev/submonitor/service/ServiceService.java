@@ -89,11 +89,11 @@ public class ServiceService {
      *                                 или не принадлежит текущему пользователю
      */
     @Transactional
-    public ServiceDto updateService(ServiceUpdateRequest request) {
+    public ServiceDto updateService(Long serviceId, ServiceUpdateRequest request) {
         Long subId = getSubId();
-        var service = serviceRepository.findByIdAndOwnerId(request.id(), subId)
+        var service = serviceRepository.findByIdAndOwnerId(serviceId, subId)
                 .orElseThrow(() -> {
-                    log.warn("Service: {} was not found or subscriber: {} is not the owner", request.id(), subId);
+                    log.warn("Service: {} was not found or subscriber: {} is not the owner", serviceId, subId);
                     throw new NotFoundException("Service was not found or principal is not the owner");
                 });
 
