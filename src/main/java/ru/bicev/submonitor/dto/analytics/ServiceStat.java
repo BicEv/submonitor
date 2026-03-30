@@ -3,11 +3,12 @@ package ru.bicev.submonitor.dto.analytics;
 import java.beans.ConstructorProperties;
 import java.math.BigDecimal;
 
-public record ServiceStat(String service, BigDecimal total) {
+public record ServiceStat(String service, String currency, BigDecimal total) {
 
-    @ConstructorProperties({ "service", "total" })
-    public ServiceStat(String service, BigDecimal total) {
+    @ConstructorProperties({ "service", "currency", "total" })
+    public ServiceStat(String service, String currency, BigDecimal total) {
         this.service = service;
+        this.currency = currency;
         this.total = total;
     }
 
