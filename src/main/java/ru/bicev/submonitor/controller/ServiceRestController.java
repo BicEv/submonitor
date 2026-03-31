@@ -74,7 +74,7 @@ public class ServiceRestController {
      * @param request   запрос содержащий данные для обновления
      * @return дто, содержащее данные обновленного сервиса
      */
-    @PatchMapping("/{serviceId")
+    @PatchMapping("/{serviceId}")
     public ResponseEntity<ServiceDto> updateService(@PathVariable Long serviceId,
             @RequestBody ServiceUpdateRequest request) {
         var updated = serviceService.updateService(serviceId, request);
