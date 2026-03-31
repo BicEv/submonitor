@@ -53,7 +53,8 @@ public class AnalyticsService {
      */
     public List<CategoryStatResponse> getCategoryStatsForMonth() {
         Long userId = getUserId();
-        log.debug("getCategoryStatsForMonth() for user: {} and month: {}", userId, getStartOfMonth().getMonth().toString());
+        log.debug("getCategoryStatsForMonth() for user: {} and month: {}", userId,
+                getStartOfMonth().getMonth().toString());
         var rawStats = jooqAnalyticsRepository.getExpensesByCategory(userId,
                 PAYMENTS.PAYMENT_DATE.ge(getStartOfMonth()));
         return mapToAggregated(rawStats);
@@ -91,7 +92,8 @@ public class AnalyticsService {
      */
     public List<ServiceStatResponse> getServiceStatsForMonth() {
         Long userId = getUserId();
-        log.debug("getServiceStatsForMonth() for user: {} and month: {}", userId, getStartOfMonth().getMonth().toString());
+        log.debug("getServiceStatsForMonth() for user: {} and month: {}", userId,
+                getStartOfMonth().getMonth().toString());
         var rawStats = jooqAnalyticsRepository.getExpensesByService(userId,
                 PAYMENTS.PAYMENT_DATE.ge(getStartOfMonth()));
         return mapToConverted(rawStats);
@@ -107,6 +109,18 @@ public class AnalyticsService {
         log.debug("getServiceStatsForYear() for user: {} and year: {}", userId, getStartOfYear().getYear());
         var rawStats = jooqAnalyticsRepository.getExpensesByService(userId, PAYMENTS.PAYMENT_DATE.ge(getStartOfYear()));
         return mapToConverted(rawStats);
+    }
+
+    /**
+     * Метод возвращающий сумму всех затрат за все время
+     * 
+     * @return сумму всех затрат за все время
+     */
+    public TotalResponse getTotal() {
+        Long userId = getUserId();
+        log.debug("getTotal() for user: {}", userId);
+        var amounts = jooqAnalyticsRepository.getTotal(userId, DSL.noCondition());
+        return new TotalResponse(calculateTotalInBase(amounts));
     }
 
     /**
