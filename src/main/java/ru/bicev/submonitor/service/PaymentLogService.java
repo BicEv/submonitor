@@ -1,5 +1,6 @@
 package ru.bicev.submonitor.service;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 import org.springframework.data.domain.Pageable;
@@ -11,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import ru.bicev.submonitor.dto.PagedResponse;
 import ru.bicev.submonitor.dto.payment.PaymentCreateLogRequest;
 import ru.bicev.submonitor.dto.payment.PaymentLogDto;
+import ru.bicev.submonitor.dto.payment.PaymentUpdateLogRequest;
 import ru.bicev.submonitor.entity.PaymentLog;
 import ru.bicev.submonitor.entity.Subscriber;
 import ru.bicev.submonitor.entity.Subscription;
@@ -115,6 +117,48 @@ public class PaymentLogService {
 
         var paymentDtos = paymentLogRepository.findAllBySubscriberId(subId, pageable).map(this::toDto);
         return PagedResponse.toPagedResponse(paymentDtos);
+    }
+
+    /**
+     * Метод обновляющий платежный лог
+     * 
+     * @param paymentLogId идентификатор платежного лога
+     * @param request      запрос, содержащий параметры для обновления
+     * @return дто, содержащий данные обновленного лога
+     * @throws NotFoundException.class если лога с таким идентификатором не найдено
+     *                                 или подписки с указанным в запросе
+     *                                 идентификатором не найдено или они не
+     *                                 принадлежат текущему пользователю
+     */
+    @Transactional
+    public PaymentLogDto updatePaymentLog(Long paymentLogId, PaymentUpdateLogRequest request) {
+        Long subId = getSubId();
+        var payment = paymentLogRepository.findByIdAndSubscriberId(paymentLogId, subId).orElseThrow(() -> {
+            log.warn("PaymentLog with id: {} was not found or it doesn't belong to user: {}",
+                    paymentLogId, subId);
+            throw new NotFoundException("PaymentLog not found or doesn't belong to current user");
+        });
+
+        if (request.subscriptionId() != null) {
+            var subscription = subscriptionRepository.findByIdAndSubscriberId(request.subscriptionId(), subId)
+                    .orElseThrow(() -> {
+                        log.warn("Subscription with id: {} was not found or it doesn't belong to user: {}",
+                                request.subscriptionId(), subId);
+                        throw new NotFoundException("Subscription not found or doesn't belong to current user");
+                    });
+            payment.setSubscription(subscription);
+        }
+        if (request.amount() != null && request.amount().compareTo(BigDecimal.ZERO) <= 0) {
+            payment.setAmount(request.amount());
+        }
+        if (request.paymentDate() != null) {
+            payment.setPaymentDate(request.paymentDate());
+        }
+        if (request.status() != null) {
+            payment.setStatus(request.status());
+        }
+        return toDto(payment);
+
     }
 
     /**
