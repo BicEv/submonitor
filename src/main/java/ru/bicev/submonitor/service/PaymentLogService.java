@@ -148,7 +148,7 @@ public class PaymentLogService {
                     });
             payment.setSubscription(subscription);
         }
-        if (request.amount() != null && request.amount().compareTo(BigDecimal.ZERO) <= 0) {
+        if (request.amount() != null && request.amount().compareTo(BigDecimal.ZERO) >= 0) {
             payment.setAmount(request.amount());
         }
         if (request.paymentDate() != null) {
