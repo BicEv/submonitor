@@ -15,6 +15,11 @@ import ru.bicev.submonitor.entity.Subscription;
 import ru.bicev.submonitor.entity.enums.BillingPeriod;
 import ru.bicev.submonitor.repository.SubscriptionRepository;
 
+/**
+ * Сервис выполняющий автоматическое создание платежей с текущей или прошедшей
+ * датой следующего платежа и установку следующей даты платежа в соответствии с
+ * периодом подписки
+ */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -23,6 +28,10 @@ public class PaymentAutomationService {
     private final SubscriptionRepository subscriptionRepository;
     private final PaymentLogService paymentLogService;
 
+    /**
+     * Метод выполняющий обработку подписок с текущей или прошедшей датой следующего
+     * платежа и создание логов для них
+     */
     @EventListener(ApplicationReadyEvent.class)
     @Scheduled(cron = "0 0 9 * * *")
     @Transactional
@@ -43,6 +52,13 @@ public class PaymentAutomationService {
         log.info("Automated processing is over!");
     }
 
+    /**
+     * Служебный метод обновляющий дату следующего платежа подписки в соответствие с
+     * ее периодом
+     * 
+     * @param subscription подписка для которой нужно обновить слежующую дату
+     *                     платежа
+     */
     private void updateNextPaymentDate(Subscription subscription) {
         LocalDate currentNext = subscription.getNextPayment();
         BillingPeriod period = subscription.getBillingPeriod();
