@@ -41,7 +41,7 @@ public class CurrencyServiceTest {
     private CurrencyService service;
 
     @BeforeEach
-    void serUp() {
+    void setUp() {
         ReflectionTestUtils.setField(service, "baseCurrency", "RUB");
         ReflectionTestUtils.setField(service, "supportedCurrencies", List.of("USD", "EUR"));
 
