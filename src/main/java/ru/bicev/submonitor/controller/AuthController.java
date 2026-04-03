@@ -18,7 +18,7 @@ import ru.bicev.submonitor.service.AuthService;
  * Контроллер для регистрации и логина пользователя
  */
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
 public class AuthController {
 
