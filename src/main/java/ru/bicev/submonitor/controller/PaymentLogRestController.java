@@ -1,6 +1,8 @@
 package ru.bicev.submonitor.controller;
 
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -65,7 +67,8 @@ public class PaymentLogRestController {
      *         логов для указанных страниц
      */
     @GetMapping
-    public ResponseEntity<PagedResponse<PaymentLogDto>> getPagedLogs(Pageable pageable) {
+    public ResponseEntity<PagedResponse<PaymentLogDto>> getPagedLogs(
+            @PageableDefault(size = 10, sort = "paymentDate", direction = Sort.Direction.ASC) Pageable pageable) {
         var pagedResponse = paymentLogService.getPaymentsForUser(pageable);
         return ResponseEntity.status(HttpStatus.OK).body(pagedResponse);
     }
