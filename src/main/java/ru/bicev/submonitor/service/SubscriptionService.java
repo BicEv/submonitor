@@ -27,6 +27,7 @@ import ru.bicev.submonitor.repository.SubscriptionRepository;
 @RequiredArgsConstructor
 public class SubscriptionService {
 
+    private final CurrencyService currencyService;
     private final SecurityService securityService;
     private final ServiceRepository serviceRepository;
     private final SubscriptionRepository subscriptionRepository;
@@ -120,7 +121,7 @@ public class SubscriptionService {
         if (request.price() != null && request.price().compareTo(BigDecimal.ZERO) > 0) {
             subscription.setPrice(request.price());
         }
-        if (request.currency() != null) {
+        if (request.currency() != null && currencyService.isSupported(request.currency())) {
             subscription.setCurrency(request.currency());
         }
         if (request.billingPeriod() != null) {
