@@ -12,6 +12,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import jakarta.validation.ValidationException;
 import lombok.extern.slf4j.Slf4j;
 import ru.bicev.submonitor.dto.error.ErrorResponse;
 
@@ -57,6 +58,18 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleBadCredentialsException(BadCredentialsException ex) {
         log.warn("BadCredentialsException: {}", ex.getMessage());
         return buildResponse(HttpStatus.UNAUTHORIZED, ex.getMessage());
+    }
+
+    /**
+     * Метод обрабатывающий ValidationException.class
+     * 
+     * @param ex исключение, перехватываемое методом
+     * @return ответ, содержащий статус, время ошибки и сообщение об ошибке
+     */
+    @ExceptionHandler(ValidationException.class)
+    public ResponseEntity<ErrorResponse> handleValidationException(ValidationException ex) {
+        log.warn("Validation exception: {}", ex.getMessage());
+        return buildResponse(HttpStatus.BAD_REQUEST, ex.getMessage());
     }
 
     /**
