@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import jakarta.validation.ValidationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import ru.bicev.submonitor.dto.subscription.SubCreationRequest;
@@ -105,9 +106,12 @@ public class SubscriptionService {
      * @param request запрос содержащий идентификатор подписки для изменения и
      *                данные для обновления
      * @return дто, содержащее данные обновленной подписки
-     * @throws NotFoundException.class если подписка с идентификатором из запроса не
-     *                                 найдена или не принадлежит текущему
-     *                                 пользователю
+     * @throws NotFoundException.class   если подписка с идентификатором из запроса
+     *                                   не
+     *                                   найдена или не принадлежит текущему
+     *                                   пользователю
+     * @throws ValidationException.class если валюта в запросе на обновление не
+     *                                   поддерживается приложением
      */
     @Transactional
     public SubscriptionDto updateSubscription(Long subscriptionId, SubUpdateRequest request) {
@@ -121,7 +125,10 @@ public class SubscriptionService {
         if (request.price() != null && request.price().compareTo(BigDecimal.ZERO) > 0) {
             subscription.setPrice(request.price());
         }
-        if (request.currency() != null && currencyService.isSupported(request.currency())) {
+        if (request.currency() != null) {
+            if (!currencyService.isSupported(request.currency())) {
+                throw new ValidationException("Unsupported currency: " + request.currency());
+            }
             subscription.setCurrency(request.currency());
         }
         if (request.billingPeriod() != null) {
