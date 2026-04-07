@@ -8,12 +8,13 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import ru.bicev.submonitor.entity.enums.BillingPeriod;
+import ru.bicev.submonitor.util.SupportedCurrency;
 
 public record SubCreationRequest(
-        @NotNull(message = "serviceId cannot be null") Long serviceId,
-        @Positive(message = "Price must be bigger than zero") BigDecimal price,
-        @NotBlank(message = "Currency cannot be empty") String currency,
-        @NotNull(message = "Billing period cannot be null") BillingPeriod billingPeriod,
-        @FutureOrPresent LocalDate nextPayment) {
+                @NotNull(message = "serviceId cannot be null") Long serviceId,
+                @Positive(message = "Price must be bigger than zero") BigDecimal price,
+                @NotBlank(message = "Currency cannot be empty") @SupportedCurrency String currency,
+                @NotNull(message = "Billing period cannot be null") BillingPeriod billingPeriod,
+                @FutureOrPresent LocalDate nextPayment) {
 
 }
