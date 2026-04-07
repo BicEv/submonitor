@@ -187,6 +187,17 @@ public class SubscriptionRestControllerIT {
         }
 
         @Test
+        @DisplayName("Must return Bad request if currency from request is not supported")
+        void updateSubscription_BadRequest() throws Exception {
+                var invalidCurRequest = new SubUpdateRequest(null, "Not_Supported", null, null, null);
+                mockMvc.perform(patch("/api/v1/subscriptions/" + subscriptionId)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(invalidCurRequest))
+                                .header("Authorization", obtainToken()))
+                                .andExpect(status().isBadRequest());
+        }
+
+        @Test
         @DisplayName("Must return 404 when subscription not found")
         void updateSubscription_NotFound() throws Exception {
                 mockMvc.perform(patch("/api/v1/subscriptions/" + 987798798)
