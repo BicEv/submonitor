@@ -96,6 +96,16 @@ public class CurrencyService {
     }
 
     /**
+     * Метод проверяющий поддерживается ли предложеная валюта приложением
+     * 
+     * @param currency проверяемая валюта
+     * @return true, если валюта поддерживается, false если не поддерживается
+     */
+    public boolean isSupported(String currency) {
+        return rates.containsKey(currency.toUpperCase());
+    }
+
+    /**
      * Служебный метод для построения URL запроса на Frankfurter v2 API
      * 
      * @return URL строка запроса
