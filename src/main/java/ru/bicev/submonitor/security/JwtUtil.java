@@ -14,6 +14,10 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Класс отвечающий за генерацию, валидацию и извлечение идентификатора
+ * подписчика-пользователя из jwt токена
+ */
 @Component
 @Slf4j
 public class JwtUtil {
@@ -28,6 +32,12 @@ public class JwtUtil {
         return Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
     }
 
+    /**
+     * Метод генерирующий jwt токен из переданной аутентификации
+     * 
+     * @param authentication аутентификация пользователя
+     * @return строка - jwt токен
+     */
     public String generateToken(Authentication authentication) {
         UserDetailsImpl userPrincipal = (UserDetailsImpl) authentication.getPrincipal();
 
@@ -40,6 +50,12 @@ public class JwtUtil {
                 .compact();
     }
 
+    /**
+     * Метод извлекающий имя пользователя из jwt токена
+     * 
+     * @param token jwt токен
+     * @return имя пользователя
+     */
     public String getUsernameFromJwtToken(String token) {
         return Jwts.parser()
                 .verifyWith(getSigningKey())
@@ -49,6 +65,12 @@ public class JwtUtil {
                 .getSubject();
     }
 
+    /**
+     * Метод извлекающий идентификатор пользователя из токена
+     * 
+     * @param token jwt токен
+     * @return идентификатор пользователя
+     */
     public Long getIdFromJwtToken(String token) {
         return Jwts.parser()
                 .verifyWith(getSigningKey())
@@ -58,6 +80,12 @@ public class JwtUtil {
                 .get("userId", Long.class);
     }
 
+    /**
+     * Метод выполняющий проверку jwt токена на валидность
+     * 
+     * @param token jwt токен
+     * @return true если токен валиден, false если нет
+     */
     public boolean validateJwtToken(String token) {
         try {
             Jwts.parser().verifyWith(getSigningKey()).build().parseSignedClaims(token);
