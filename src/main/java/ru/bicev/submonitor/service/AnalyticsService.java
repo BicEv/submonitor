@@ -11,7 +11,6 @@ import org.jooq.impl.DSL;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
-import lombok.var;
 import lombok.extern.slf4j.Slf4j;
 import ru.bicev.submonitor.dto.analytics.CategoryStat;
 import ru.bicev.submonitor.dto.analytics.CategoryStatResponse;
