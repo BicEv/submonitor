@@ -37,5 +37,5 @@ docker-compose up --build -d
 - Swagger UI http://localhost:8080/swagger-ui.html
 - OpenAPI JSON http://localhost:8080/api-docs
 
-### Архитектурные особенности
+## Архитектурные особенности
 - Query Optimization: ИСпользование jOOQ позволяет строить эффективные запросы для аналитики
